@@ -82,17 +82,17 @@ while capture.isOpened(): # laço que abre a camera
 	fps = 1 / (currentTime-previousTime)
 	previousTime = currentTime
 	
-
+    
     # Calculando a distancia entre dois pontos e mostrando 
-	thump_tip = mp_holistic.HandLandmark.THUMB_TIP
-	index_tip = mp_holistic.HandLandmark.INDEX_FINGER_TIP
-	thump_tip = [thump_tip.x, thump_tip.y] # coordenadas do polegar
-	index_tip = [index_tip.x, index_tip.y] # coordenadas do indicador
-	distancia = calculate_distance(thump_tip, index_tip)
-	cv2.putText(image, distancia, (10, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0), 2)
-
+	#thump_tip = mp_holistic.HandLandmark.THUMB_TIP
+	#index_tip = mp_holistic.HandLandmark.INDEX_FINGER_TIP
+	#thump_tip = [thump_tip.x, thump_tip.y] # coordenadas do polegar
+	#index_tip = [index_tip.x, index_tip.y] # coordenadas do indicador
+	#distancia = calculate_distance(thump_tip, index_tip)
+	#cv2.putText(image, distancia, (10, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0), 2)
+    
 	# Displaying FPS on the image
-	cv2.putText(image, str(int(fps))+" FPS", (10, 70), cv2.FONT_HERSHEY_COMPLEX, 1, (0,255,0), 2)
+	cv2.putText(image, str(int(fps))+" FPS", (10, 70), cv2.FONT_HERSHEY_COMPLEX, 1, (255,255,0), 2)
 
 	# Display the resulting image
 	cv2.imshow("Facial and Hand Landmarks", image)

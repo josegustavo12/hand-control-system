@@ -98,7 +98,7 @@ Guarda os valores dos frames na variavel results
     - Desenha os Landmarks da mão direita
 - `fingers_count = count_fingers(results.right_hand_landmarks)`: 
     - conta os dedos levantados da mão direita.
-- `cv2.putText(frame, f'Fingers: {fingers_count}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)`: 
+- `cv2.putText(frame, f'Fingers: {fingers_count}', (10, 30), cv2.FONT_HERSH EY_SIMPLEX, 1, (0, 255, 0), 2)`: 
     -  imprime o texto com o número de dedos levantados na imagem.
 
 Funciona da mesma forma para a esquerda

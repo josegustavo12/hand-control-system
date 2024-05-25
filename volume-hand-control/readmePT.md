@@ -64,7 +64,7 @@ screen_height_mm = monitor.height_mm
 ```
    - Utilizamos a biblioteca `screeninfo` para obter a resolução e o tamanho físico do monitor. Isso é usado para calcular a proporção de pixels por centímetro.
 
-## Desenho das Landmarks e Cálculo da Distância:**
+## Desenho das Landmarks e Cálculo da Distância:
    - Para cada mão detectada no frame, desenhamos as landmarks usando o módulo `mp_drawing`.
    - Calculamos a distância entre o polegar e o indicador para cada mão e exibimos essa distância na tela usando `cv2.putText`.
    - A distância é calculada em centímetros usando a proporção de pixels por centímetro obtida anteriormente.
@@ -205,3 +205,4 @@ holistic.close()
 ```
 
 No codigo final eu só juntei a ideia principal do dois projetos inicais, ao invez de ter um valor constante no `new_volume` o valor é modificado conforme a distancia em pixels do valor já normalizado
+Vale falar também que eu adicionei uma lógica de que, caso o dedo mindinho esteja abaixado ele executa a ação de mudar o volume. a explicação é simples e se inspira no count-fingers

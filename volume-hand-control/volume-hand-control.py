@@ -48,26 +48,44 @@ while cap.isOpened():
         mp_drawing.draw_landmarks(frame, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
         thumb_tip = results.right_hand_landmarks.landmark[mp_holistic.HandLandmark.THUMB_TIP]
         index_finger_tip = results.right_hand_landmarks.landmark[mp_holistic.HandLandmark.INDEX_FINGER_TIP]
-        
+        pinky_tip = results.right_hand_landmarks.landmark[mp_holistic.HandLandmark.PINKY_TIP]
+        pinky_dip = results.right_hand_landmarks.landmark[mp_holistic.HandLandmark.PINKY_DIP]
+
+        # distancia entre a ponta do polegar e a ponta do indicador
         thumb_tip_coords = normalized_to_pixel_coordinates(thumb_tip, image_width, image_height)
         index_finger_tip_coords = normalized_to_pixel_coordinates(index_finger_tip, image_width, image_height)
+
+        # calculo da distancia do mindinho
+        pinky_tip_coords = normalized_to_pixel_coordinates(pinky_tip, image_width, image_height) # (x,y)
+        pinky_dip_coords = normalized_to_pixel_coordinates(pinky_dip, image_width, image_height)
+
         
+        # calculo da distancia em pixels
         distance_pixels = calculate_distance(thumb_tip, index_finger_tip)
-        volume_control(distance_pixels)
-        cv2.line(frame, thumb_tip_coords, index_finger_tip_coords, (0, 255, 0), 2)
+
+        # verificação do dedo mindinho para fazer o controle
+        if  pinky_tip_coords[0] < pinky_dip_coords[0]:
+            volume_control(distance_pixels)
+            cv2.line(frame, thumb_tip_coords, index_finger_tip_coords, (0, 255, 0), 2)
 
     if results.left_hand_landmarks:
         mp_drawing.draw_landmarks(frame, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
         thumb_tip = results.left_hand_landmarks.landmark[mp_holistic.HandLandmark.THUMB_TIP]
         index_finger_tip = results.left_hand_landmarks.landmark[mp_holistic.HandLandmark.INDEX_FINGER_TIP]
-        
+        pinky_tip = results.left_hand_landmarks.landmark[mp_holistic.HandLandmark.PINKY_TIP]
+        pinky_dip = results.left_hand_landmarks.landmark[mp_holistic.HandLandmark.PINKY_DIP]
+
         thumb_tip_coords = normalized_to_pixel_coordinates(thumb_tip, image_width, image_height)
         index_finger_tip_coords = normalized_to_pixel_coordinates(index_finger_tip, image_width, image_height)
         
         distance_pixels = calculate_distance(thumb_tip, index_finger_tip)
-        volume_control(distance_pixels)
 
-        cv2.line(frame, thumb_tip_coords, index_finger_tip_coords, (0, 255, 0), 2)
+        pinky_tip_coords = normalized_to_pixel_coordinates(pinky_tip, image_width, image_height) # (x,y)
+        pinky_dip_coords = normalized_to_pixel_coordinates(pinky_dip, image_width, image_height)
+        
+        if pinky_tip_coords[0] < pinky_dip_coords[0]: 
+            volume_control(distance_pixels)
+            cv2.line(frame, thumb_tip_coords, index_finger_tip_coords, (0, 255, 0), 2)
 
     cv2.imshow("Hand Tracking", frame)
 

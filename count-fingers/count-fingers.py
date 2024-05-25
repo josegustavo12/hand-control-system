@@ -19,7 +19,7 @@ def count_fingers(hand_landmarks):
     
     for tip_id in fingers_tips:
         finger_tip = hand_landmarks.landmark[tip_id]
-        finger_dip = hand_landmarks.landmark[tip_id - 2]  # Ponto DIP da junta correspondente
+        finger_dip = hand_landmarks.landmark[tip_id - 2] 
 
         if finger_tip.y < finger_dip.y:
             fingers_folded += 1
@@ -27,6 +27,7 @@ def count_fingers(hand_landmarks):
     thumb_tip = hand_landmarks.landmark[mp_holistic.HandLandmark.THUMB_TIP]
     thumb_ip = hand_landmarks.landmark[mp_holistic.HandLandmark.THUMB_IP]
 
+    
     if hand_landmarks.landmark[mp_holistic.HandLandmark.WRIST].x > thumb_tip.x > thumb_ip.x:
         fingers_folded += 1
 

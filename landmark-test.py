@@ -17,7 +17,7 @@ mp_holistic = mp.solutions.holistic
 holistic_model = mp_holistic.Holistic(
     min_detection_confidence=0.5,
     min_tracking_confidence=0.7,
-	model_complexity = 1
+	model_complexity = 2
 )
 mp_drawing = mp.solutions.drawing_utils # desenhando o tracking 
 

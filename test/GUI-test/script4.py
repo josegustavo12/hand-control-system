@@ -148,7 +148,6 @@ def check_pointing_action(hand_landmarks, dist_m):
 def compute_distance(x1, y1, x2, y2):
     return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
-# Main loop for capturing and processing video input
 prev_res = []
 
 cap = cv2.VideoCapture(0)

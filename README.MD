@@ -139,14 +139,25 @@ root.mainloop()
 
 ```
 ## Funcionamento 
+### GUI:
+![Count Fingers](fotos/Captura%20de%20tela%20de%202024-05-28%2020-18-29.png)
 
 ### Script 1 (Count Fingers):
+![Count Fingers](fotos/5dedoshandtracking.png)
+![Count Fingers](fotos/5e3dedoshandtracking.png)
+
 
 ### Script 2 (Pyautogui Mouse):
-
+- Digita um comando no terminal e o mouse irá executar
+    - (move 540 879) ele irá mover para as coordenadas x = 540 e y = 879
 ### Script 3 (Volume Hand Control):
+![Count Fingers](fotos/volume.png)
 
 ### Script 4 (Projeto final):
+O projeto final possui os seguintes comandos:
+- Todos os dedos abaixados e apenas o `indicador` levantado: Mover o mouse na direção do dedo
+- Dedo indicador e do meio levantados: scroll do mouse (juntos = 0; separados aumenta)
+- dedos abaixados e sinal de pinça (encostar o dedo indicador com o polegar): left click
 
 
 
@@ -154,6 +165,3 @@ root.mainloop()
 
 José Gustavo Victor Pinheiro Alencar
 
-## Licença
-
-Este projeto está licenciado sob a Licença MIT. Consulte o arquivo LICENSE para obter mais informações.

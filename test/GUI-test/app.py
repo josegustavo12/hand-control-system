@@ -45,7 +45,7 @@ def script5():
 
 # cria a janela principal
 root = tk.Tk()
-root.title("Controle de Scripts")
+root.title("Projeto de Visão Computacional")
 root.geometry("400x300")
 root.configure(bg="#2C3E50")
 

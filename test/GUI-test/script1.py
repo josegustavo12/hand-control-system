@@ -28,7 +28,7 @@ def count_fingers(hand_landmarks):
     thumb_ip = hand_landmarks.landmark[mp_holistic.HandLandmark.THUMB_IP]
 
     
-    if hand_landmarks.landmark[mp_holistic.HandLandmark.WRIST].x > thumb_tip.x > thumb_ip.x:
+    if hand_landmarks.landmark[mp_holistic.HandLandmark.WRIST].x > thumb_tip.x < thumb_ip.x:
         fingers_folded += 1
 
     return fingers_folded

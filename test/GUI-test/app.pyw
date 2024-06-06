@@ -3,8 +3,9 @@ from tkinter import messagebox
 import subprocess
 import os
 
-# caminho para o script (substitua aqui com o caminho desejado)
-scripts_dir = "/home/jose/Documentos/GitHub/hand-control-system/test/GUI-test"
+
+scripts_dir = os.getcwd() + "/test/GUI-test"
+print(scripts_dir)
 
 # funções que executam o script
 def script1():
@@ -34,14 +35,6 @@ def script4():
         messagebox.showinfo("Script 4", "Script 4 executado com sucesso!")
     except subprocess.CalledProcessError as e:
         messagebox.showerror("Erro", f"Erro ao executar Script 4: {e}")
-
-def script5():
-    try:
-        subprocess.run(["python3", os.path.join(scripts_dir, "script5.py")], check=True)
-        messagebox.showinfo("Script 5", "Script 5 executado com sucesso!")
-    except subprocess.CalledProcessError as e:
-        messagebox.showerror("Erro", f"Erro ao executar Script 5: {e}")
-
 
 # cria a janela principal
 root = tk.Tk()

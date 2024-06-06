@@ -10,182 +10,194 @@ mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
-def get_last_k_valid_reading(prev_results, k):
+def get_last_k_valid_readings(prev_results, k):
     valid_readings = []
-    for i in range(1, len(prev_results)):
-        prev_landmarks = get_hand_landmarks(prev_results[-i])
-        if prev_landmarks is not None:
-            valid_readings.append(prev_landmarks)
-            if len(valid_readings) == k:
-                return valid_readings
+
+    for result in reversed(prev_results):
+        # pega os pontos de referencia das mãos (landmarks)
+        hand_landmarks = get_hand_landmarks(result)
+        # se os pontos forem validos, add na lista
+        if hand_landmarks:
+            valid_readings.append(hand_landmarks)
+        #para dps de k leituras
+        if len(valid_readings) == k:
+            break
+
     return valid_readings
 
-def left_click():
-    pyautogui.click(button='left')
-    print('left clicked')
+def perform_click(action):
+    if action == 'left_click':
+        button = 'left'
+    else:
+        button = 'right'
+        
+    pyautogui.click(button=button)
+    print("{} clicked".format(button))
 
-def right_click():
-    pyautogui.click(button='right')
-    print('right clicked')
+def move_mouse(curr_landmarks, prev_landmarks, image_height, image_width):
+    # coordenadas atuais
+    curr_x, curr_y = get_coords(curr_landmarks, 8)
+    # coordenadas anteriores
+    prev_x, prev_y = get_coords(prev_landmarks, 8) 
 
-def mouse_move(results, prev_results, image_height, image_width):
-    curr_landmarks = get_hand_landmarks(results)
-    prev_landmarks = get_last_k_valid_reading(prev_results, 5)[0]
-    second_prev_landmarks = get_last_k_valid_reading(prev_results, 5)[-1]
+    diff_x = curr_x - prev_x # calculo da diferença em x
+    diff_y = curr_y - prev_y # calculo da diferença em y
+    
+    sensitivity_factor = 0.5 # sensibilidade do mouse
+    # calcula o movimento no eixo x/y do mouse, multiplicando as coordenadas pela largura da imagem e pela sensibilidade
+    move_x = int(diff_x * image_width * sensitivity_factor) 
+    move_y = int(diff_y * image_height * sensitivity_factor)
+    # função do pyautogui que move o mouse
+    pyautogui.moveRel(move_x, move_y, duration=0.2)
+   
+    print('Mouse moved')
 
-    if curr_landmarks is None or prev_landmarks is None:
-        return
+def scroll_mouse(curr_landmarks, prev_landmarks):
+    # obtem as coordenadas atuais e anteriores do eixo y
+    curr_y = get_coords(curr_landmarks, 8)[1] 
+    prev_y = get_coords(prev_landmarks, 8)[1]
 
-    curr_x_coords = np.array([curr_landmarks.landmark[i].x for i in range(len(curr_landmarks.landmark))])[8]
-    curr_y_coords = np.array([curr_landmarks.landmark[i].y for i in range(len(curr_landmarks.landmark))])[8]
-    prev_x_coords = np.array([prev_landmarks.landmark[i].x for i in range(len(prev_landmarks.landmark))])[8]
-    prev_y_coords = np.array([prev_landmarks.landmark[i].y for i in range(len(prev_landmarks.landmark))])[8]
-    diff = (curr_x_coords - prev_x_coords, curr_y_coords - prev_y_coords)
+    # calcula a diferença da atual e da anterior
+    diff = curr_y - prev_y
+    sensitivity_factor = 0.01 # sensibilidade do scroll
 
-    sec_prev_x_coords = np.array([second_prev_landmarks.landmark[i].x for i in range(len(second_prev_landmarks.landmark))])[8]
-    sec_prev_y_coords = np.array([second_prev_landmarks.landmark[i].y for i in range(len(second_prev_landmarks.landmark))])[8]
-    control_diff = (curr_x_coords - sec_prev_x_coords, curr_y_coords - sec_prev_y_coords)
-
-    if np.absolute(control_diff[0]) >= 0.003 or np.absolute(control_diff[1]) >= 0.003:
-        pyautogui.moveRel(int(diff[0] * image_width * 3), int(diff[1] * image_height * 3), duration=0.1)
-        print('mouse moved')
-
-def scroll(results, prev_results):
-    curr_landmarks = get_hand_landmarks(results)
-    prev_landmarks = get_hand_landmarks(prev_results)
-
-    if curr_landmarks is None or prev_landmarks is None:
-        return
-
-    curr_y_coords = np.array([curr_landmarks.landmark[i].y for i in range(len(curr_landmarks.landmark))])[8]
-    prev_y_coords = np.array([prev_landmarks.landmark[i].y for i in range(len(prev_landmarks.landmark))])[8]
-    diff = curr_y_coords - prev_y_coords
-
-    if np.absolute(diff) >= 0.01:
-        pyautogui.scroll(100 * diff)
+    if abs(diff) >= sensitivity_factor:
+        pyautogui.scroll(100 * diff) # movimento do scroll
         print('scrolled')
 
+def get_coords(landmarks, idx):
+    x = landmarks.landmark[idx].x # objeto (landmarks), atributo (landmark) e indice da coordenada x
+    y = landmarks.landmark[idx].y
+    return x, y # retorna uma tupla com as coordenadas
+
 def compute_distance_matrix(hand_landmarks):
-    x_coords = np.array([hand_landmarks.landmark[i].x for i in range(len(hand_landmarks.landmark))])
-    y_coords = np.array([hand_landmarks.landmark[i].y for i in range(len(hand_landmarks.landmark))])
-    z_coords = np.array([hand_landmarks.landmark[i].z for i in range(len(hand_landmarks.landmark))])
-    dm = np.zeros(shape=(len(z_coords), len(z_coords)))
-    for i in range(len(z_coords)):
-        for j in range(len(z_coords)):
-            dm[i, j] = np.sqrt(np.square(x_coords[i] - x_coords[j])
-                               + np.square(y_coords[i] - y_coords[j])
-                               + np.square(z_coords[i] - z_coords[j]))
-    return dm
+
+    coords = []
+
+    for lm in hand_landmarks.landmark: # itera sobre cada landmark
+
+        coords.append((lm.x, lm.y, lm.z)) # add esses pontos no coords
+
+    coords = np.array(coords) 
+
+    diff_vectors = coords[:, np.newaxis] - coords # calcula o vetor diferença de todos os pontos 
+
+    # a np.linalg.norm é usada para calcular a norma euclidiana da matriz (dois pontos em um espaço tridimensional)
+    distance_matrix = np.linalg.norm(diff_vectors, axis=2)
+
+    # cada pontos (i,j) da matriz representa a distancia entre o ponto i e o ponto j
+    return distance_matrix
 
 def get_hand_landmarks(results):
-    if results.multi_handedness is None:
+
+    if not results.multi_handedness: # verifica se tem +1 mão
         return None
-    multi_hand_landmarks = results.multi_hand_landmarks
-    multi_handedness = results.multi_handedness
+    
+    for hand in results.multi_handedness: # itera sobre as lateralidades
 
-    hands_labels = [item.classification[0].label for item in multi_handedness if item.classification[0].label]
+        if hand.classification[0].label == 'Right': # verifica se é direita
 
-    if len(hands_labels) == 1:
-        hands_index = 0
-    else:
-        if 'Right' in hands_labels and len(set(hands_labels)) == 2:
-            hands_index = hands_labels.index('Right')
-        else:
-            return None
-    hand_landmarks = multi_hand_landmarks[hands_index]
-    return hand_landmarks
+            return results.multi_hand_landmarks[results.multi_handedness.index(hand)] # retorna os pontos de referencia da mão direita
+        elif hand.classification[0].label == 'Left':
+            return results.multi_hand_landmarks[results.multi_handedness.index(hand)]
+    
+    
+    return None # retorna nada caso não veja mão
 
-def recognize_gesture(results):
-    hand_landmarks = get_hand_landmarks(results)
-    if hand_landmarks is None:
-        return None
-
+def recognize_gesture(hand_landmarks):
     dist_m = compute_distance_matrix(hand_landmarks)
-    action = None
-
+    
+    # calcula a distancia entre pontos especificos 
     thumb_idx_dist = dist_m[4, 8]
-    mid_thumb_dist = dist_m[4, 12]
     mid_idx_dist = dist_m[8, 12]
-    base_idx_thumb_dist = dist_m[4, 5]
-    wrist_idx_dist = dist_m[0, 8]
-    wrist_mid_dist = dist_m[0, 12]
     wrist_ring_dist = dist_m[0, 16]
+    wrist_mid_dist = dist_m[0, 12]
     wrist_pinky_dist = dist_m[0, 20]
-    y_coords = np.array([hand_landmarks.landmark[i].y for i in range(len(hand_landmarks.landmark))])
+    base_idx_thumb_dist = dist_m[4, 5]
+    
+    # Coordenadas y dos pontos de referência da mão
+    y_coords = []
+    for lm in hand_landmarks.landmark:
+        y_coords.append(lm.y)
+    y_coords = np.array(y_coords)
 
-    if check_pointing_action(hand_landmarks, dist_m):
-        action = 'mouse_move'
+
+    # mover o mouse
+    if (y_coords[12] - y_coords[6] > THR and y_coords[16] - y_coords[6] > THR and 
+        y_coords[20] - y_coords[6] > THR and base_idx_thumb_dist <= THR and 
+        y_coords[8] - y_coords[6] < THR):
+        return 'mouse_move'
+    
+    # clicar com o botão esquerdi
     elif thumb_idx_dist <= THR and mid_idx_dist > THR and wrist_ring_dist > WRIST_THR and wrist_mid_dist > WRIST_THR and wrist_pinky_dist > WRIST_THR:
-        action = 'left_click'
-    elif check_right_click(hand_landmarks, dist_m):
-        action = 'right_click'
-    elif check_scrolling_action(hand_landmarks, dist_m):
-        action = 'scroll'
-    else:
-        action = None
+        return 'left_click'
+    
+    # clicar com o botão direito
+    elif (y_coords[15] - y_coords[6] < THR and dist_m[4, 12] < THR and y_coords[15] - y_coords[12] < THR and 
+          y_coords[18] - y_coords[12] < THR and y_coords[19] - y_coords[6] < THR and y_coords[15] - y_coords[6] < THR and 
+          y_coords[12] - y_coords[14] > THR and y_coords[12] - y_coords[19] > THR):
+        return 'right_click'
+    
+    # scroll
+    elif (y_coords[12] - y_coords[14] < THR and y_coords[16] - y_coords[6] > THR and 
+          y_coords[20] - y_coords[6] > THR and base_idx_thumb_dist <= THR and 
+          y_coords[8] - y_coords[6] < THR and y_coords[12] - y_coords[6] < THR):
+        return 'scroll'
+    
+    return None # caso nenhum gesto seja reconhecido
 
-    return action
-
-def check_right_click(hand_landmarks, dist_m):
-    y_coords = np.array([hand_landmarks.landmark[i].y for i in range(len(hand_landmarks.landmark))])
-    return y_coords[15] - y_coords[6] < THR and dist_m[4, 12] < THR \
-           and y_coords[15] - y_coords[12] < THR and y_coords[18] - y_coords[12] < THR \
-           and y_coords[19] - y_coords[6] < THR and y_coords[15] - y_coords[6] < THR \
-           and y_coords[12] - y_coords[14] > THR and y_coords[12] - y_coords[19] > THR
-
-def check_scrolling_action(hand_landmarks, dist_m):
-    y_coords = np.array([hand_landmarks.landmark[i].y for i in range(len(hand_landmarks.landmark))])
-    return y_coords[12] - y_coords[14] < THR and y_coords[16] - y_coords[6] > THR and y_coords[20] - y_coords[6] > THR \
-           and dist_m[4, 5] <= THR and y_coords[8] - y_coords[6] < THR and y_coords[12] - y_coords[6] < THR
-
-def check_pointing_action(hand_landmarks, dist_m):
-    y_coords = np.array([hand_landmarks.landmark[i].y for i in range(len(hand_landmarks.landmark))])
-    if y_coords[12] - y_coords[6] > THR and y_coords[16] - y_coords[6] > THR and y_coords[20] - y_coords[6] > THR \
-            and dist_m[4, 5] <= THR and y_coords[8] - y_coords[6] < THR:
-        return True
-    return False
-
-def compute_distance(x1, y1, x2, y2):
-    return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-
-prev_res = []
-
+prev_res = [] # resultados anteriores 
 cap = cv2.VideoCapture(0)
 
 while cap.isOpened():
+
     ret, frame = cap.read()
+    
     if not ret:
         print("Ignoring empty camera frame.")
         continue
 
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
     image_height, image_width, _ = frame.shape
 
-    results = hands.process(frame_rgb)
+    results = hands.process(frame_rgb) # processa os resultados da detecção da mão
     
     if results.multi_handedness:
-        action = recognize_gesture(results)
-        if action and len(prev_res) > 5:
-            prev_action = recognize_gesture(prev_res[-1])
-            prev_prev_action = recognize_gesture(prev_res[-2])
-            if action == 'left_click' and prev_prev_action != 'left_click':
-                left_click()
-            elif action == 'right_click' and prev_action != 'right_click':
-                right_click()
-            elif action == 'mouse_move' and prev_action is not None:
-                mouse_move(results, prev_res, image_height, image_width)
-            elif action == 'scroll':
-                scroll(results, prev_res[-5])
-        prev_res.append(results)
+
+        curr_landmarks = get_hand_landmarks(results) # pontos de referencia atuais
+        
+        if curr_landmarks:
+            # cria a ação/gesto com base nos pontos de referencia
+            action = recognize_gesture(curr_landmarks)
+            
+            if action and len(prev_res) >= 5:
+
+                prev_landmarks = get_last_k_valid_readings(prev_res, 5)[0] # referencia das ultimas 5 detecções válidas (aplicação do filtro)
+                
+                if action == 'left_click':
+                    perform_click(action)
+                elif action == 'right_click':
+                    perform_click(action)
+                elif action == 'mouse_move':
+                    move_mouse(curr_landmarks, prev_landmarks, image_height, image_width)
+                elif action == 'scroll':
+                    scroll_mouse(curr_landmarks, prev_landmarks)
+            
+            prev_res.append(results) # add os resultados anteriores
+            if len(prev_res) > 10: # limite de tamanho para 10
+                prev_res = prev_res[-10:]
+            # para evitar de crescer infinito e deixar o codigo mais lento
     
     frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
-    if results.multi_hand_landmarks:
+    
+    if results.multi_hand_landmarks: # desenha os landmarks
         for hand_landmarks in results.multi_hand_landmarks:
             mp_drawing.draw_landmarks(frame_bgr, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
     cv2.imshow("Hand Control System", frame_bgr)
 
-    if cv2.waitKey(10) & 0xFF == ord('q'):
+    if cv2.waitKey(10) & 0xFF == ord('q'): # sair = q
         break
 
 cap.release()
